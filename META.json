@@ -1,7 +1,7 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "Simplify your Zabbix server scripts' environment.",
    "author" : [
-      "Anton Alekseyev <akint.wr+github@gmail.com>"
+      "Anton Alekseev <akint.wr@gmail.com>"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v3.0.2, CPAN::Meta::Converter version 2.143240",
@@ -52,5 +52,19 @@
       }
    },
    "release_status" : "unstable",
-   "version" : "0.01"
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/Akint/Zabbix-ServerScript/issues"
+      },
+      "homepage" : "https://github.com/Akint/Zabbix-ServerScript",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/Akint/Zabbix-ServerScript.git",
+         "web" : "https://github.com/Akint/Zabbix-ServerScript"
+      }
+   },
+   "version" : "0.01",
+   "x_contributors" : [
+      "Anton Alekseyev <akint.wr+github@gmail.com>"
+   ]
 }
