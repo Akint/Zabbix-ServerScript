@@ -44,9 +44,16 @@ Initializes following global variables:
 
 - $config 
 
-    hashref contais both local (script-specific) and global data.
+    hashref contais both local (script-specific) and global config data.
 
-    Global config is located at Zabbix/ServerScript/Config.pm and can be accessed through $Zabbix::ServerScript::Config variable.
+    Default global config is located at Zabbix/ServerScript/DefaultConfig.pm.
+
+    User can generate its own global config and store it into Zabbix/ServerScript/Config.pm. Config.pm is preferred over DefaultConfig.pm.
+
+    **TODO:**
+    Provide a tool to simple copy DefaultConfig to Config.
+
+    Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
     Script-specific config is searched within $Zabbix::ServerScript::Config->{config\_dir} path.
 
@@ -96,7 +103,7 @@ Returns database handle or throws an exception on failure.
 
 # LICENSE
 
-Copyright (C) Anton Alekseev.
+Copyright (C) Anton Alekseyev.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
