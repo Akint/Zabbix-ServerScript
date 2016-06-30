@@ -1,0 +1,362 @@
+package Zabbix::ServerScript;
+
+use strict;
+use warnings;
+use Exporter;
+use Data::Dumper;
+use YAML;
+use Text::ParseWords;
+use ZabbixAPI;
+use Log::Log4perl;
+use Log::Log4perl::Level;
+use Proc::PID::File;
+use File::Basename;
+use Exporter;
+use Carp;
+use Storable;
+
+BEGIN {
+	eval {
+		require Zabbix::ServerScript::Config;
+		1;
+	} or eval {
+		require Zabbix::ServerScript::DefaultConfig;
+		1;
+	} or die q(Either Zabbix::ServerScript::DefaultConfig or Zabbix::ServerScript::Config is required);
+}
+
+our @ISA = q(Exporter);
+our @EXPORT = qw($config $logger $zx_api);
+our $VERSION = q(0.01);
+
+our $config = {};
+our $logger;
+our $zx_api;
+
+sub _set_basename {
+	my @caller = @_;
+	$ENV{BASENAME} = basename($caller[1]);
+	$ENV{BASENAME} =~ s/\.pl$//;
+	$ENV{BASENAME} =~ s/[\0\/]//;
+	return;
+}
+
+sub _set_binmode {
+	binmode(STDOUT, q(utf8:));
+	binmode(STDERR, q(utf8:));
+	return;
+}
+
+sub _set_id {
+	my ($id) = @_;
+	if (defined $id){
+		$ENV{ID} = $id;
+	} else {
+		$ENV{ID} = $ENV{BASENAME};
+	}
+	return;
+}
+
+sub _set_logger {
+	my ($opt) = @_;
+	$opt = {} unless defined $opt;
+
+	croak qq(Couldn't find 'log_dir' section in Zabbix::ServerScript::Config) unless defined $Zabbix::ServerScript::Config->{log_dir};
+	croak qq(Environment variables BASENAME and ID are not set) unless (defined $ENV{BASENAME} and $ENV{ID});
+	if (defined $opt->{log_filename}){
+		if ($opt->{log_filename} ne q()){
+			$ENV{LOG_FILENAME} = $opt->{log_filename};
+		} else {
+			$logger->logdie(q(Cannot log to empty filename));
+		}
+	} else {
+		$ENV{LOG_FILENAME} = qq($Zabbix::ServerScript::Config->{log_dir}/$ENV{BASENAME}.log);
+	}
+
+	croak qq(Couldn't find 'log' section in Zabbix::ServerScript::Config) unless defined $Zabbix::ServerScript::Config->{log};
+	Log::Log4perl->init($Zabbix::ServerScript::Config->{log});
+
+
+	if (defined $opt->{logger}){
+		if ($opt->{logger} eq q()){
+			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript.nolog));
+		} else {
+			$logger = Log::Log4perl::get_logger($opt->{logger});
+		}
+	} else {
+		if (defined $opt->{console} && $opt->{console} == 1){
+			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript.console));
+		} else {
+			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript));
+		}
+	}
+	
+	if (defined $opt->{verbose} && $opt->{verbose}){
+		$logger->more_logging($opt->{verbose});
+	}
+	if (defined $opt->{debug} && $opt->{debug} == 1){
+		$logger->level($DEBUG);
+	}
+
+	$SIG{__DIE__} = sub {
+		my ($message) = @_;
+		if($^S and not (defined $ENV{ZBX_TESTING} and $ENV{ZBX_TESTING} == 1)) {
+			# We're in an eval {} and don't want log
+			# this message but catch it later
+			return;
+		}
+		$Log::Log4perl::caller_depth++;
+		$logger->fatal($message);
+	};
+
+	$SIG{__WARN__} = sub {
+		my ($message) = @_;
+		local $Log::Log4perl::caller_depth;
+		$Log::Log4perl::caller_depth++;
+		$logger->warn($message);
+	};
+	return;
+}
+
+sub _set_config {
+	my ($config_filename) = @_;
+
+	$logger->logcroak(qq(Environment variables BASENAME and ID are not set)) unless (defined $ENV{BASENAME} and $ENV{ID});
+
+	if (not defined $config_filename){
+		$config_filename = qq($Zabbix::ServerScript::Config->{config_dir}/$ENV{BASENAME}.yaml);
+	}
+	if ($config_filename ne q()){
+		if (-f $config_filename){
+			$logger->debug(qq(Loading local config from file $config_filename));
+			$config = YAML::LoadFile($config_filename) or $logger->logdie(qq(Cannot load config from $config_filename));
+		} else {
+			$logger->debug(qq(Local config $config_filename was not found.)) unless $config_filename eq q();
+		}
+	}
+	$config->{global} = $Zabbix::ServerScript::Config;
+	return;
+}
+
+sub _set_api {
+	my ($api) = @_;
+	my $api_config;
+	if (defined $api){
+		$logger->logcroak(q(Missing API configuration)) unless defined ($api_config = $Zabbix::ServerScript::Config->{api});
+		$logger->logcroak(q(API URL is not defined in config)) unless defined $api_config->{url};
+		$logger->logcroak(qq(User credentials are not defined in config for API '$api')) unless (defined $api_config->{$api}->{login} and defined $api_config->{$api}->{password});
+		$zx_api = ZabbixAPI->new($Zabbix::ServerScript::Config->{api}->{url}) or $logger->logcroak(q(Cannot create ZabbixAPI object));
+		$zx_api->login($Zabbix::ServerScript::Config->{api}->{$api}->{login}, $Zabbix::ServerScript::Config->{api}->{$api}->{password}) or $logger->logcroak(q(Cannot login via Zabbix API));
+	}
+}
+
+sub _get_pid {
+	my ($id) = @_;
+	my $name = $ENV{BASENAME};
+	$name .= qq(_$id) if defined $id;
+	my $pid = {
+		name => $name,
+		dir => $Zabbix::ServerScript::Config->{pid_dir},
+	};
+	$logger->debug(qq(Using PID file $pid->{dir}/$pid->{name}.pid));
+	return $pid;
+}
+
+sub _set_unique {
+	my ($unique, $id) = @_;
+	if (defined $unique && $unique){
+		my $pid = _get_pid($id);
+		if (Proc::PID::File->running($pid)){
+			$logger->logexit(qq($pid->{name} is already running));
+		}
+	}
+}
+
+sub retrieve_cache {
+	my ($cache_filename) = @_;
+	$cache_filename = qq($Zabbix::ServerScript::Config->{cache_dir}/$ENV{BASENAME}.cache) unless defined $cache_filename;
+	my $cache;
+	if (-f $cache_filename){
+		$logger->debug(qq(Loading cache from "$cache_filename"));
+		eval {
+			$cache = retrieve $cache_filename;
+			1;
+		} or do {
+			$logger->error(qq(Cannot retrieve cache from "$cache_filename": $@));
+		};
+	} else {
+		$logger->info(qq(Cache file "$cache_filename" was not found));
+	}
+	return $cache;
+}
+
+sub store_cache {
+	my ($cache, $cache_filename) = @_;
+	eval {
+		store $cache, $cache_filename;
+		1;
+	} or do {
+		$logger->error(qq(Cannot store cache to "$cache_filename"));
+		return;
+	};
+	return 1;
+}
+
+sub init {
+	my ($opt) = @_;
+
+	_set_binmode();
+	_set_basename(caller);
+	_set_id($opt->{id});
+	_set_logger($opt);
+	_set_unique($opt->{unique}, $opt->{id});
+	_set_config($opt->{config});
+	_set_api($opt->{api});
+	$logger->debug(q(Initialized Zabbix::ServerScript));
+	$logger->debug(__FILE__);
+}
+
+sub return_value {
+	my ($value) = @_;
+	if (defined $value){
+		$logger->debug(qq(Return value: $value));
+		chomp $value;
+		print qq($value\n);
+		exit;
+	} else {
+		$logger->logcroak(q(Return value is not defined));
+	}
+}
+
+sub connect_to_db {
+	my ($dbname, $user, $password, $mode) = @_;
+	$logger->logcroak(q(dbname is not defined)) unless defined $dbname;
+	my $dbh;
+	$logger->debug(qq(Trying to connect to $dbname via ODBC));
+	$dbh = DBI->connect(
+		qq(dbi:ODBC:DSN=$dbname),
+		$user,
+		$password,
+	) or $logger->logcroak(qq(Failed to connect to $dbname: $DBI::errstr));
+	$logger->debug(qq(Connected to $dbname));
+	return $dbh;
+}
+
+1;
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Zabbix::ServerScript - Simplify your Zabbix server scripts' environment.
+
+=head1 SYNOPSIS
+
+    #!/usr/bin/perl
+    
+    use strict;
+    use warnings;
+    use utf8;
+    use Getopt::Long qw(:config bundling);
+    use Zabbix::ServerScript;
+    
+    my $opt = {
+    	unique => 1,
+    };
+    
+    my @opt_specs = qw(
+    	verbose|v+
+    	debug
+    	console
+    );
+    
+    sub main {
+    	GetOptions($opt, @opt_specs);
+    	Zabbix::ServerScript::init($opt);
+	Zabbix::ServerScript::return_value(1);
+    }
+
+=head1 DESCRIPTION
+
+Zabbix::ServerScript is a module to simplify writing new scripts for Zabbix server: external scripts, alert scripts, utils, etc.
+
+=head1 SUBROUTINES
+
+=head2 init($opt)
+
+Initializes following global variables: 
+
+=over 4
+
+=item $logger
+
+Log4perl instance
+
+=item $config 
+
+hashref contais both local (script-specific) and global data.
+
+Global config is located at Zabbix/ServerScript/Config.pm and can be accessed through $Zabbix::ServerScript::Config variable.
+
+Script-specific config is searched within $Zabbix::ServerScript::Config->{config_dir} path.
+
+	$config = {
+		global => {
+			config_dir => q(/path/to/local/config/dir),
+			log_dir => q(/tmp),
+			...,
+		},
+		local_item1 => ...,
+		local_item2 => ...,
+	}
+
+=item $zx_api
+
+ZabbixAPI instance
+
+=back
+
+init() accepts hashref as an argument, which can have the following keys:
+	
+	$opt = {
+		config => q(path/to/local/config.yaml),
+		console => 0, 				# should the script log to STDERR or not
+		verbose => 0, 				# increase verbosity. By default, script will log only WARN messages and above.
+		debug => 0, 				# Enable debug mode.
+		logger => q(Zabbix.ServerScript), 	# Log4perl logger name
+		api => q(),				# name of Zabbix API instance in global config
+		id => q(),	 			# unique identifier of what is being done, e.g.: database being checked
+		unique => 1, 				# only one instance for each $opt->{id} is allowed
+	}
+
+=head2 return_value($value)
+
+Prints $value to STDOUT and exits. Throws an exception if $value is not defined.
+
+=head2 store_cache($cache)
+
+Stores cache to file using Storable module
+
+=head2 retrieve_cache($cache_filename)
+
+Retrieves cache from file using Storable module.
+
+=head2 connect_to_db($dsn, $user, $password)
+
+Connects to database via unixODBC. $dsn is mandatory.
+Returns database handle or throws an exception on failure.
+
+=head1 LICENSE
+
+Copyright (C) Anton Alekseev.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Anton Alekseev E<lt>akint.wr@gmail.comE<gt>
+
+=cut
