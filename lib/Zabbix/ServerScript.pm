@@ -296,9 +296,16 @@ Log4perl instance
 
 =item $config 
 
-hashref contais both local (script-specific) and global data.
+hashref contais both local (script-specific) and global config data.
 
-Global config is located at Zabbix/ServerScript/Config.pm and can be accessed through $Zabbix::ServerScript::Config variable.
+Default global config is located at Zabbix/ServerScript/DefaultConfig.pm.
+
+User can generate its own global config and store it into Zabbix/ServerScript/Config.pm. Config.pm is preferred over DefaultConfig.pm.
+
+B<TODO:>
+Provide a tool to simple copy DefaultConfig to Config.
+
+Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
 Script-specific config is searched within $Zabbix::ServerScript::Config->{config_dir} path.
 
