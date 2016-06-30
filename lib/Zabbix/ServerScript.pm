@@ -357,6 +357,6 @@ it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
-Anton Alekseev E<lt>akint.wr@gmail.comE<gt>
+Anton Alekseyev E<lt>akint.wr+github@gmail.comE<gt>
 
 =cut
