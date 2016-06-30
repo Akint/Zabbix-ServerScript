@@ -350,7 +350,7 @@ Returns database handle or throws an exception on failure.
 
 =head1 LICENSE
 
-Copyright (C) Anton Alekseev.
+Copyright (C) Anton Alekseyev.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

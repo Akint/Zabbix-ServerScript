@@ -103,4 +103,4 @@ it under the same terms as Perl itself.
 
 # AUTHOR
 
-Anton Alekseev <akint.wr@gmail.com>
+Anton Alekseyev &lt;akint.wr+github@gmail.com>
