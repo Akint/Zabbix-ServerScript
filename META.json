@@ -28,7 +28,7 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "Module::Build::Tiny" : "0.035"
+            "Module::Build" : "0.4005"
          }
       },
       "develop" : {
@@ -45,7 +45,6 @@
             "Log::Log4perl" : "1.30",
             "Proc::PID::File" : "1.27",
             "YAML" : "0.70",
-            "ZabbixAPI" : "0",
             "perl" : "5.008001"
          }
       },
@@ -70,5 +69,5 @@
          "web" : "https://github.com/Akint/Zabbix-ServerScript"
       }
    },
-   "version" : "0.01"
+   "version" : "0.02"
 }

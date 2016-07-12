@@ -69,7 +69,7 @@ Initializes following global variables:
 
 - $zx\_api
 
-    ZabbixAPI instance
+    Zabbix::ServerScript::API object
 
 init() accepts hashref as an argument, which can have the following keys:
 
