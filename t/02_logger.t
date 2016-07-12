@@ -33,18 +33,23 @@ subtest q(throws exception if log4perl config is wrong) => sub {
 subtest q(test category) => sub {
 	Zabbix::ServerScript::_set_logger();
 	is($logger->{category}, q(Zabbix.ServerScript), qq(If no logger is defined, default category Zabbix.ServerScript is used));
+	is($ENV{LOG_CATEGORY}, $logger->{category}, qq(Environment variable LOG_CATEGORY is set));
 
 	Zabbix::ServerScript::_set_logger({ logger => q() });
 	is($logger->{category}, q(Zabbix.ServerScript.nolog), qq(If logger is disabled, category Zabbix.ServerScript.nolog is used));
+	is($ENV{LOG_CATEGORY}, $logger->{category}, qq(Environment variable LOG_CATEGORY is set));
 
 	Zabbix::ServerScript::_set_logger({ logger => q(test.category) });
 	is($logger->{category}, q(test.category), qq(If custome logger category is specified, it is used instead of predefined ones));
+	is($ENV{LOG_CATEGORY}, $logger->{category}, qq(Environment variable LOG_CATEGORY is set));
 
 	Zabbix::ServerScript::_set_logger({ console => 1 });
 	is($logger->{category}, q(Zabbix.ServerScript.console), qq(If output to console is requested, category Zabbix.ServerScript.console is used));
+	is($ENV{LOG_CATEGORY}, $logger->{category}, qq(Environment variable LOG_CATEGORY is set));
 
 	Zabbix::ServerScript::_set_logger({ logger => q(), console => 1 });
 	is($logger->{category}, q(Zabbix.ServerScript.nolog), qq(If output to console is requested, but logger is disabled, category Zabbix.ServerScript.nolog is used));
+	is($ENV{LOG_CATEGORY}, $logger->{category}, qq(Environment variable LOG_CATEGORY is set));
 };
 
 subtest q(check console logging) => sub {

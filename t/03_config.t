@@ -19,7 +19,6 @@ Zabbix::ServerScript::_set_binmode();
 $ENV{BASENAME} = q(zabbix_server_script_test);
 $ENV{ID} = q(zabbix_server_script_test);
 Zabbix::ServerScript::_set_logger({
-	#log_filename => q(/tmp/zabbix_server_script_test.log),
 	console => 1,
 	debug => 1,
 });

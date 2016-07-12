@@ -6,7 +6,6 @@ use Exporter;
 use Data::Dumper;
 use YAML;
 use Text::ParseWords;
-use ZabbixAPI;
 use Log::Log4perl;
 use Log::Log4perl::Level;
 use Proc::PID::File;
@@ -76,20 +75,22 @@ sub _set_logger {
 	croak qq(Couldn't find 'log' section in Zabbix::ServerScript::Config) unless defined $Zabbix::ServerScript::Config->{log};
 	Log::Log4perl->init($Zabbix::ServerScript::Config->{log});
 
-
+	my $log_category;
 	if (defined $opt->{logger}){
 		if ($opt->{logger} eq q()){
-			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript.nolog));
+			$log_category = q(Zabbix.ServerScript.nolog);
 		} else {
-			$logger = Log::Log4perl::get_logger($opt->{logger});
+			$log_category = $opt->{logger};
 		}
 	} else {
 		if (defined $opt->{console} && $opt->{console} == 1){
-			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript.console));
+			$log_category = q(Zabbix.ServerScript.console);
 		} else {
-			$logger = Log::Log4perl::get_logger(q(Zabbix.ServerScript));
+			$log_category = q(Zabbix.ServerScript);
 		}
 	}
+	$logger = Log::Log4perl::get_logger($log_category);
+	$ENV{LOG_CATEGORY} = $log_category;
 	
 	if (defined $opt->{verbose} && $opt->{verbose}){
 		$logger->more_logging($opt->{verbose});
@@ -142,11 +143,8 @@ sub _set_api {
 	my ($api) = @_;
 	my $api_config;
 	if (defined $api){
-		$logger->logcroak(q(Missing API configuration)) unless defined ($api_config = $Zabbix::ServerScript::Config->{api});
-		$logger->logcroak(q(API URL is not defined in config)) unless defined $api_config->{url};
-		$logger->logcroak(qq(User credentials are not defined in config for API '$api')) unless (defined $api_config->{$api}->{login} and defined $api_config->{$api}->{password});
-		$zx_api = ZabbixAPI->new($Zabbix::ServerScript::Config->{api}->{url}) or $logger->logcroak(q(Cannot create ZabbixAPI object));
-		$zx_api->login($Zabbix::ServerScript::Config->{api}->{$api}->{login}, $Zabbix::ServerScript::Config->{api}->{$api}->{password}) or $logger->logcroak(q(Cannot login via Zabbix API));
+		require Zabbix::ServerScript::API;
+		$zx_api = Zabbix::ServerScript::API::init($api);
 	}
 }
 
@@ -167,7 +165,7 @@ sub _set_unique {
 	if (defined $unique && $unique){
 		my $pid = _get_pid($id);
 		if (Proc::PID::File->running($pid)){
-			$logger->logexit(qq($pid->{name} is already running));
+			croak(qq($pid->{name} is already running));
 		}
 	}
 }
@@ -321,7 +319,7 @@ Script-specific config is searched within $Zabbix::ServerScript::Config->{config
 
 =item $zx_api
 
-ZabbixAPI instance
+Zabbix::ServerScript::API object
 
 =back
 

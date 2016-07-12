@@ -7,21 +7,21 @@ use Test::Output;
 use Test::MockObject;
 use File::Temp;
 use Data::Dumper;
-use Storable;
+use File::Copy;
+use File::Path;
 
 use Zabbix::ServerScript;
-
-require_ok(q(ZabbixAPI));
 
 Zabbix::ServerScript::_set_binmode();
 $ENV{BASENAME} = q(zabbix_server_script_test);
 $ENV{ID} = q(zabbix_server_script_test);
 Zabbix::ServerScript::_set_logger({ log_filename => q(/tmp/zabbix_server_script_test.log) });
 
-sub read_file_contents {
-	my ($fh) = @_;
-	return do { local $/; <$fh> };
-}
+my $dirname = File::Temp::tempdir(q(/tmp/test_lib_dir.XXXXXX));
+File::Path::mkpath(qq($dirname/Zabbix/ServerScript));
+copy($INC{q(Zabbix/ServerScript/DefaultConfig.pm)}, qq($dirname/Zabbix/ServerScript/Config.pm));
+push @INC, $dirname;
+require_ok(q(Zabbix::ServerScript::API));
 
 subtest q(Check config) => sub {
 	my $res;
@@ -54,17 +54,27 @@ subtest q(Check config) => sub {
 		},
 	};
 	ok(exception { Zabbix::ServerScript::_set_api(q(rw)) }, q(Throws exception if login is not defined for requested API credentials));
-
-#	$Zabbix::ServerScript::Config->{api} = $old_api_config;
-#	if (defined ($api = $Zabbix::ServerScript::Config->{api}) && defined $api->{url}){
-#		foreach my $key (keys %$api){
-#			$res = 1 if (ref($api->{$key}) eq q(HASH) and defined $api->{$key}->{login} and defined $api->{$key}->{password});
-#		}
-#	}
-#	ok($res, q(Credentials for Zabbix API are defined in global config));
 };
 
-subtest q(Mock Zabbix API) => sub {
+subtest q(Mock object) => sub {
+	my $is_error;
+	my $zx_api;
+
+	my $response = Test::MockObject->new();
+	$response->mock(
+		is_error => sub {
+			$is_error,
+		});
+
+	my $ua = Test::MockObject->new();
+	$ua->fake_new(q(LWP::UserAgent));
+	$ua->mock(
+		post => sub {
+			$response,
+		}
+	);
+	$ua->mock(timeout => sub { 1; });
+
 	$Zabbix::ServerScript::Config->{api} = {
 		url => q(https://zabbix.example.com),
 		rw => {
@@ -72,12 +82,37 @@ subtest q(Mock Zabbix API) => sub {
 			password => q(password),
 		},
 	};
-	Test::MockObject->fake_module(
-		q(ZabbixAPI),
-		login => sub { die(q(Cannot login via Zabbix API)); },
+
+	$is_error = 1;
+	like(exception { Zabbix::ServerScript::_set_api(q(rw)) }, qr(Cannot make request), q(Die at login failure));
+
+	$is_error = 0;
+	$response->mock(
+		content => sub { q({
+			"jsonrpc": "2.0",
+			"error": {
+				"code": -32602,
+				"message": "Message.",
+				"data": "Data."
+			},
+			"id": 1
+		}) }
 	);
-	like(exception { Zabbix::ServerScript::_set_api(q(rw)) }, qr(Cannot login via Zabbix API), q(Die at login failure));
+	like(exception { Zabbix::ServerScript::_set_api(q(rw)) }, qr(Message\..+Data\.), q(Die if error is returned));
+
+	$response->mock(
+		content => sub { q({
+			"jsonrpc": "2.0",
+			"result": "0424bd59b807674191e7d77572075f33",
+			"id": 1
+		}) }
+	);
+	$zx_api = Zabbix::ServerScript::_set_api(q(rw));
+	is($zx_api->{auth}, q(0424bd59b807674191e7d77572075f33), q(Initialized with correct auth code));
+
+	$zx_api = undef;
 };
 
 unlink(q(/tmp/zabbix_server_script_test.log));
+rmdir($dirname);
 done_testing;
