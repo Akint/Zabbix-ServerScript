@@ -64,7 +64,7 @@ sub init {
 sub _request {
 	my ($self, $method_name, $params) = @_;
 	$params = {} unless defined $params;
-	$logger->debug(qq(Calling method $method_name with the following params:\n) . Dumper($params));
+	#$logger->debug(qq(Calling method $method_name with the following params:\n) . Dumper($params));
 	my $request_hashref = {
 		jsonrpc => q(2.0),
 		method => $method_name,
@@ -73,20 +73,19 @@ sub _request {
 		id => 1,
 	};
 	my $request_json = encode_json($request_hashref);
-	$logger->debug($request_json);
+	$logger->debug(qq(API request: $request_json));
 	my $res = $ua->post(
 		$self->{url},
 		q(Content-Type) => q(application/json-rpc),
 		q(Content) => $request_json,
 	); 
-	croak(qq(Cannot make request "$method_name")) if $res->is_error;
+	croak(qq(Cannot make request "$method_name": ) . $res->status_line) if $res->is_error;
 	my $response_json = $res->content;
-	$logger->debug($response_json);
+	$logger->debug(qq(API response: $response_json));
 	my $response_hashref = decode_json($response_json);
 	if (defined $response_hashref->{error}){
 		croak(qq(Zabbix API error: $response_hashref->{error}->{message}. $response_hashref->{error}->{data}));
 	}
-	$logger->debug(Dumper($response_hashref->{result}));
 	return $response_hashref->{result};
 }
 
