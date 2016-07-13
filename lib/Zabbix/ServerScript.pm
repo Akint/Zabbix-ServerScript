@@ -152,6 +152,7 @@ sub _get_pid {
 	my ($id) = @_;
 	my $name = $ENV{BASENAME};
 	$name .= qq(_$id) if defined $id;
+	$name =~ s/[\0\/]/_/;
 	my $pid = {
 		name => $name,
 		dir => $Zabbix::ServerScript::Config->{pid_dir},
@@ -211,7 +212,6 @@ sub init {
 	_set_config($opt->{config});
 	_set_api($opt->{api});
 	$logger->debug(q(Initialized Zabbix::ServerScript));
-	$logger->debug(__FILE__);
 }
 
 sub return_value {
