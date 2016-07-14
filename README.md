@@ -36,6 +36,19 @@ Zabbix::ServerScript is a module to simplify writing new scripts for Zabbix serv
 
 ## init($opt)
 
+Accepts hashref as an argument, which can have the following keys:
+
+        $opt = {
+                config => q(path/to/local/config.yaml),
+                console => 0,                           # should the script log to STDERR or not
+                verbose => 0,                           # increase verbosity. By default, script will log only WARN messages and above.
+                debug => 0,                             # Enable debug mode.
+                logger => q(Zabbix.ServerScript),       # Log4perl logger name
+                api => q(),                             # name of Zabbix API instance in global config
+                id => q(),                              # unique identifier of what is being done, e.g.: database being checked
+                unique => 1,                            # only one instance for each $opt->{id} is allowed
+        }
+
 Initializes following global variables: 
 
 - $logger
@@ -70,19 +83,6 @@ Initializes following global variables:
 - $zx\_api
 
     Zabbix::ServerScript::API object
-
-init() accepts hashref as an argument, which can have the following keys:
-
-        $opt = {
-                config => q(path/to/local/config.yaml),
-                console => 0,                           # should the script log to STDERR or not
-                verbose => 0,                           # increase verbosity. By default, script will log only WARN messages and above.
-                debug => 0,                             # Enable debug mode.
-                logger => q(Zabbix.ServerScript),       # Log4perl logger name
-                api => q(),                             # name of Zabbix API instance in global config
-                id => q(),                              # unique identifier of what is being done, e.g.: database being checked
-                unique => 1,                            # only one instance for each $opt->{id} is allowed
-        }
 
 ## return\_value($value)
 
