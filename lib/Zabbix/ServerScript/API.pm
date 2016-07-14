@@ -51,7 +51,7 @@ sub init {
 	croak(qq(User credentials are not defined in config for API '$api')) unless (defined $api_config->{$api}->{login} and defined $api_config->{$api}->{password});
 
 	$ua = LWP::UserAgent->new;
-	$ua->timeout(3);
+	$ua->timeout($api_config->{timeout});
 	my $self = new($api_config->{url});
 
 	$self->{auth} = $self->user_login({
@@ -64,7 +64,6 @@ sub init {
 sub _request {
 	my ($self, $method_name, $params) = @_;
 	$params = {} unless defined $params;
-	#$logger->debug(qq(Calling method $method_name with the following params:\n) . Dumper($params));
 	my $request_hashref = {
 		jsonrpc => q(2.0),
 		method => $method_name,

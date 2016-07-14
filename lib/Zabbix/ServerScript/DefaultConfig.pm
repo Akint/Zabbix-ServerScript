@@ -4,6 +4,7 @@ $Zabbix::ServerScript::Config = {
 	},
 	api => {
 		url => undef,
+		timeout => 10,
 		rw => {
 			password => undef,
 			login => undef,
