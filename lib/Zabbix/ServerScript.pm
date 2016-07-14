@@ -5,6 +5,7 @@ use warnings;
 use Exporter;
 use Data::Dumper;
 use YAML;
+use JSON;
 use Text::ParseWords;
 use Log::Log4perl;
 use Log::Log4perl::Level;
@@ -13,6 +14,7 @@ use File::Basename;
 use Exporter;
 use Carp;
 use Storable;
+#use IO::Socket::INET;
 
 BEGIN {
 	eval {
@@ -152,7 +154,7 @@ sub _get_pid {
 	my ($id) = @_;
 	my $name = $ENV{BASENAME};
 	$name .= qq(_$id) if defined $id;
-	$name =~ s/[\0\/]/_/;
+	$name =~ s/[\0\/]/_/g;
 	my $pid = {
 		name => $name,
 		dir => $Zabbix::ServerScript::Config->{pid_dir},
@@ -238,6 +240,55 @@ sub connect_to_db {
 	) or $logger->logcroak(qq(Failed to connect to $dbname: $DBI::errstr));
 	$logger->debug(qq(Connected to $dbname));
 	return $dbh;
+}
+
+sub _prepare_sender_data {
+	my ($request_data) = @_;
+	if (ref($request_data) eq q(HASH)){
+		$request_data = [ $request_data ];
+	} elsif (ref($request_data) ne q(ARRAY)){
+		croak(qq(Request is neither arrayref nor hashref: ) . Dumper($request_data));
+	}
+	$request_data = {
+		request => q(sender data),
+		data => $request_data,
+	};
+	# encode_json throws an exception itself, if it cannot encode json.
+	# This 'croak' stands here just in case encode_json implementation will be changed.
+	my $request_json = encode_json($request_data) or croak(qq(Cannot encode to JSON: ) . Dumper($request_data));
+}
+
+sub _proceed_sender_response {
+	my ($response_json) = @_;
+	$response_json =~ s/^.+(?={)//;
+	my $response_data = decode_json($response_json) or croak(qq(Cannon decode JSON));
+	return $response_data;
+}
+
+sub send {
+	my ($request_data, $sender_host, $sender_port) = @_;
+	$sender_host = q(localhost) if not defined $sender_host;
+	$sender_port = q(10051) if not defined $sender_port;
+	$logger->debug(qq(Opening sender socket to $sender_host:$sender_port));
+	require IO::Socket::INET;
+	my $socket = IO::Socket::INET->new(
+		PeerAddr => $sender_host,
+		PeerPort => $sender_port,
+		Proto => q(tcp),
+		Timeout => 10,
+	) or croak(qq(Cannot open socket for zabbix sender to "$sender_host:$sender_port": $?));
+
+	my $request_json = _prepare_sender_data($request_data);
+	my $request_length = length($request_json);
+	my $response_json;
+
+	$logger->debug(qq(Writing $request_length of data to sender socket: $request_json));
+	$socket->write($request_json, $request_length) or croak(qq(Cannot write to socket: $!));
+	$socket->read($response_json, 2048) or croak(qq(Cannot read from socket: $!));
+	$socket->close or croak(qq(Cannot close socket: $!));
+	$logger->debug(qq(Server answered to sender: $response_json));
+	my $response_data = _proceed_sender_response($response_json);
+	return $response_data;
 }
 
 1;
@@ -352,6 +403,22 @@ Retrieves cache from file using Storable module.
 
 Connects to database via unixODBC. $dsn is mandatory.
 Returns database handle or throws an exception on failure.
+
+=head2 send($data_structure, $user, $password)
+
+Send data to Zabbix trapper like zabbix_sender does. $data_structure is mandatory.
+Returns server response on success or throws an exception on failure.
+$data_structure must be either hashref or arrayref of hashrefs.
+
+Each of hashref must be like:
+
+	{
+		host => q(Linux host),	# hostname as in Zabbix frontend
+		key => q(item_key),
+		value => 1,
+		clock => time,		# unix timestamp, optional
+	}
+
 
 =head1 LICENSE
 
