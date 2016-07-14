@@ -2,6 +2,9 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.03 2016-07-14T09:41:41Z
+    - added zabbix_sender implementation
+
 0.02 2016-07-12T09:27:56Z
     - implemented Zabbix API
 

@@ -101,6 +101,21 @@ Retrieves cache from file using Storable module.
 Connects to database via unixODBC. $dsn is mandatory.
 Returns database handle or throws an exception on failure.
 
+## send($data\_structure, $user, $password)
+
+Send data to Zabbix trapper like zabbix\_sender does. $data\_structure is mandatory.
+Returns server response on success or throws an exception on failure.
+$data\_structure must be either hashref or arrayref of hashrefs.
+
+Each of hashref must be like:
+
+        {
+                host => q(Linux host),  # hostname as in Zabbix frontend
+                key => q(item_key),
+                value => 1,
+                clock => time,          # unix timestamp, optional
+        }
+
 # LICENSE
 
 Copyright (C) Anton Alekseyev.
