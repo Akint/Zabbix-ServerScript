@@ -42,6 +42,8 @@
       },
       "runtime" : {
          "requires" : {
+            "Log::Dispatch" : "2.26",
+            "Log::Dispatch::FileRotate" : "1.19",
             "Log::Log4perl" : "1.30",
             "Proc::PID::File" : "1.27",
             "YAML" : "0.70",
@@ -69,5 +71,5 @@
          "web" : "https://github.com/Akint/Zabbix-ServerScript"
       }
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }

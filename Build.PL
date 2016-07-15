@@ -24,8 +24,10 @@ my %args = (
     requires => {
         'perl' => '5.008001',
         'YAML' => '0.70',
+        'Log::Dispatch' => '2.26',
         'Proc::PID::File' => '1.27',
         'Log::Log4perl' => '1.30',
+        'Log::Dispatch::FileRotate' => '1.19',
     },
 
     recommends => {

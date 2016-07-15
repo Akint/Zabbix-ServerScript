@@ -2,6 +2,9 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.04 2016-07-15T04:53:27Z
+    - added Log::Dispatch to dependencies, changed 'pid_dir' to /tmp in DefaultConfig.pm
+
 0.03 2016-07-14T09:41:41Z
     - added zabbix_sender implementation
 
