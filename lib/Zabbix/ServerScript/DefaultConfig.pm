@@ -55,7 +55,6 @@ $Zabbix::ServerScript::Config = {
 		log4perl.appender.Logfile.layout = Log::Log4perl::Layout::PatternLayout::Multiline
 		log4perl.appender.Logfile.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %P %p> %m%n
 		log4perl.appender.Logfile.DatePattern = yyyy-MM-dd
-		log4perl.appender.Logfile.TZ = UTC
 		log4perl.appender.Logfile.max = 7
 
 		# STDERR
