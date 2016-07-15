@@ -35,7 +35,7 @@ $Zabbix::ServerScript::Config = {
 				q(FFFFFF)
 			],
 	},
-	pid_dir => q(/var/run/zabbix),
+	pid_dir => q(/tmp),
 	#log => q(/etc/log4perl.conf), #possible to use path to log4perl file
 	log => \q(
 		log4perl.logger.Zabbix.ServerScript = WARN, Logfile
