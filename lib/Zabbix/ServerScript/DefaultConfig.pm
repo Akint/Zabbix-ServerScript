@@ -67,7 +67,8 @@ $Zabbix::ServerScript::Config = {
 	),
 	log_dir => q(/tmp),
 	cache_dir => q(/var/tmp),
-	config_dir => q(/etc/zabbix),
+	#config_dir => q(/etc/zabbix),
+	config_dir => q(/usr/local/etc),
 	http_proxy => {
 		password => undef,
 		timeout => undef,
