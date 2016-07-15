@@ -42,6 +42,10 @@
       },
       "runtime" : {
          "requires" : {
+            "DBD::ODBC" : "1.50",
+            "DBI" : "1.609",
+            "JSON" : "2.15",
+            "LWP::UserAgent" : "6.15",
             "Log::Dispatch" : "2.26",
             "Log::Dispatch::FileRotate" : "1.19",
             "Log::Log4perl" : "1.30",
@@ -52,10 +56,12 @@
       },
       "test" : {
          "requires" : {
+            "Capture::Tiny" : "0",
             "Test::Fatal" : "0",
             "Test::MockModule" : "0",
             "Test::MockObject" : "0",
-            "Test::More" : "0.98"
+            "Test::More" : "0.98",
+            "Test::Output" : "0"
          }
       }
    },
@@ -71,5 +77,5 @@
          "web" : "https://github.com/Akint/Zabbix-ServerScript"
       }
    },
-   "version" : "0.04"
+   "version" : "0.05"
 }

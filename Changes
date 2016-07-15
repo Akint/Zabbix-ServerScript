@@ -2,6 +2,11 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.05 2016-07-15T06:50:49Z
+    - Fixed dependencies, changed 'config_dir' to /usr/local/etc in DefaultConfig.pm
+      Added missed dependencies: DBI, DBD::ODBC, JSON, LWP::UserAgent
+
+
 0.04 2016-07-15T04:53:27Z
     - added Log::Dispatch to dependencies, changed 'pid_dir' to /tmp in DefaultConfig.pm
 
