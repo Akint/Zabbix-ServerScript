@@ -63,7 +63,7 @@ subtest q(Ensure process uniqueness) => sub {
 	}
 	while (wait() != -1) {}
 	my $content = read_file_contents($log_fh);
-	like($content, qr(already running), q(Second fork found that the first one is running));
+	like($content, qr(already running), q(Second fork found out that the first one was running));
 	unlike($content, qr(Result message: 1), q(Second fork exited));
 	like($content, qr(Result message: 0), q(First fork finished its job));
 };

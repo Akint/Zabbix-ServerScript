@@ -17,7 +17,7 @@ $ENV{BASENAME} = q(zabbix_server_script_test);
 $ENV{ID} = q(zabbix_server_script_test);
 Zabbix::ServerScript::_set_logger({ log_filename => q(/tmp/zabbix_server_script_test.log) });
 
-my $dirname = File::Temp::tempdir(q(/tmp/test_lib_dir.XXXXXX));
+my $dirname = File::Temp::tempdir(q(/tmp/test_lib_dir.XXXXXX), CLEANUP => 1);
 File::Path::mkpath(qq($dirname/Zabbix/ServerScript));
 copy($INC{q(Zabbix/ServerScript/DefaultConfig.pm)}, qq($dirname/Zabbix/ServerScript/Config.pm));
 push @INC, $dirname;
