@@ -14,7 +14,8 @@ use File::Basename;
 use Exporter;
 use Carp;
 use Storable;
-#use IO::Socket::INET;
+use Term::ReadLine;
+use Term::UI;
 
 BEGIN {
 	eval {
@@ -27,7 +28,7 @@ BEGIN {
 }
 
 our @ISA = q(Exporter);
-our @EXPORT = qw($config $logger $zx_api);
+our @EXPORT = qw($config $logger $zx_api create_config);
 our $VERSION = q(0.05);
 
 our $config = {};
@@ -291,6 +292,48 @@ sub send {
 	return $response_data;
 }
 
+sub create_config {
+	require Zabbix::ServerScript::DefaultConfig;
+
+	init({
+		console => 1,
+		verbose => 1,
+	});
+
+	my $term = Term::ReadLine->new('Zabbix::ServerScript');
+	(my $module_dir = dirname($INC{q(Zabbix/ServerScript/DefaultConfig.pm)})) =~ s|//|/|g;
+	$module_dir = $term->get_reply(
+		prompt => q(Directory to store Config.pm),
+		default => $module_dir,
+	);
+	die(qq(Wrong directory: $module_dir)) unless (-d $module_dir and -w $module_dir);
+	$logger->debug(qq(Will store Config.pm in $module_dir));
+
+	my $module_filename = qq($module_dir/Config.pm);
+	if (-f $module_filename){
+		$term->ask_yn(
+			prompt => qq(\n$module_filename exists.\nOverwrite?),
+			default => q(n),
+		) or exit 0;
+		$logger->info(q(Overwrite has been requested));
+	}
+
+	for my $section (qw(config_dir pid_dir log_dir)){
+		$Zabbix::ServerScript::Config->{$section} = $term->get_reply(
+			prompt => $section,
+			default => $Zabbix::ServerScript::Config->{$section},
+		);
+	}
+
+	open my $fh, q(>), $module_filename or die(qq(Cannot open file $module_filename: $!)); 
+	print $fh Data::Dumper->Dump([$Zabbix::ServerScript::Config], [q($Zabbix::ServerScript::Config)]);
+	close $fh;
+
+	require $module_filename or die(qq(Cannot load module: $!));
+	$logger->info(qq($module_filename has been created successfully));
+	exit 0;
+}
+
 1;
 
 __END__
@@ -326,6 +369,8 @@ Zabbix::ServerScript - Simplify your Zabbix server scripts' environment.
     	Zabbix::ServerScript::init($opt);
 	Zabbix::ServerScript::return_value(1);
     }
+
+    main();
 
 =head1 DESCRIPTION
 
@@ -363,9 +408,6 @@ hashref contais both local (script-specific) and global config data.
 Default global config is located at Zabbix/ServerScript/DefaultConfig.pm.
 
 User can generate its own global config and store it into Zabbix/ServerScript/Config.pm. Config.pm is preferred over DefaultConfig.pm.
-
-B<TODO:>
-Provide a tool to simple copy DefaultConfig to Config.
 
 Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
@@ -419,6 +461,13 @@ Each of hashref must be like:
 		clock => time,		# unix timestamp, optional
 	}
 
+=head2 create_config
+
+Creates Config.pm from DefaultConfig.pm.
+
+Usage:
+
+	perl -MZabbix::ServerScript -e create_config
 
 =head1 LICENSE
 
