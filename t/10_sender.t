@@ -5,7 +5,7 @@ use Test::More tests => 4;
 use Test::Fatal;
 use Test::MockModule;
 use Data::Dumper;
-
+use JSON;
 
 my $opt = {
 	log_filename => q(/tmp/zabbix_server_script_test.log),
@@ -45,12 +45,10 @@ subtest q(Test socket opening) => sub {
 	like( exception { Zabbix::ServerScript::send() }, qr(Cannot open socket), q(Throws an exception if cannot open socket));
 };
 
-subtest q(Test sending data) => sub {
-	$socket->mock(
-		new => sub {
-			return bless {}, q(IO::Socket::INET)
-		}
-	);
+sub test_valid_json {
+	my ($data, $expected_json, $message) = @_;
+	my $expected_hashref = decode_json($expected_json);
+
 	my @args;
 	$socket->mock(
 		write => sub {
@@ -59,14 +57,28 @@ subtest q(Test sending data) => sub {
 			return;
 		},
 	);
+
+	like( exception { Zabbix::ServerScript::send($data) }, qr(Cannot write to socket), q(Throws an exception if cannot write to socket));
+
+	my $got_json = $args[0];
+	my $got_hashref;
+	ok($got_hashref = decode_json($got_json), q(Writes valid JSON to socket));
+	is_deeply($got_hashref, $expected_hashref, $message);
+	is($args[1], length($expected_json), q(Writes proper JSON length to socket));
+}
+
+subtest q(Test sending data) => sub {
+	$socket->mock(
+		new => sub {
+			return bless {}, q(IO::Socket::INET)
+		}
+	);
 	my $data = {
 		host => q(TestHost),
 		key => q(test_item),
 		value => 1,
 	};
-	like( exception { Zabbix::ServerScript::send($data) }, qr(Cannot write to socket), q(Throws an exception if cannot write to socket));
-	is($args[0], q({"request":"sender data","data":[{"value":1,"key":"test_item","host":"TestHost"}]}), q(Writes proper single item JSON to socket));
-	is($args[1], 82, q(Writes proper JSON length to socket));
+	test_valid_json($data, q({"request":"sender data","data":[{"value":1,"key":"test_item","host":"TestHost"}]}), q(Writes proper single item JSON to socket));
 
 	$data = [
 		{
@@ -80,9 +92,7 @@ subtest q(Test sending data) => sub {
 			value => 1,
 		},
 	];
-	like( exception { Zabbix::ServerScript::send($data) }, qr(Cannot write to socket), q(Throws an exception if cannot write to socket));
-	is($args[0], q({"request":"sender data","data":[{"value":1,"key":"test_item","host":"TestHost"},{"value":1,"key":"test_item","host":"TestHost"}]}), q(Writes proper multiple items JSON to socket));
-	is($args[1], 130, q(Writes proper JSON length to socket));
+	test_valid_json($data, q({"request":"sender data","data":[{"value":1,"key":"test_item","host":"TestHost"},{"value":1,"key":"test_item","host":"TestHost"}]}), q(Writes proper multiple items JSON to socket));
 
 	$data = q(Test);
 	like( exception { Zabbix::ServerScript::send($data) }, qr(Request is neither arrayref nor hashref), q(Throws an exception if passed data is neither arrayref nor hashref));
