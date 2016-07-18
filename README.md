@@ -28,6 +28,8 @@ Zabbix::ServerScript - Simplify your Zabbix server scripts' environment.
         Zabbix::ServerScript::return_value(1);
     }
 
+    main();
+
 # DESCRIPTION
 
 Zabbix::ServerScript is a module to simplify writing new scripts for Zabbix server: external scripts, alert scripts, utils, etc.
@@ -62,9 +64,6 @@ Initializes following global variables:
     Default global config is located at Zabbix/ServerScript/DefaultConfig.pm.
 
     User can generate its own global config and store it into Zabbix/ServerScript/Config.pm. Config.pm is preferred over DefaultConfig.pm.
-
-    **TODO:**
-    Provide a tool to simple copy DefaultConfig to Config.
 
     Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
@@ -115,6 +114,14 @@ Each of hashref must be like:
                 value => 1,
                 clock => time,          # unix timestamp, optional
         }
+
+## create\_config
+
+Creates Config.pm from DefaultConfig.pm.
+
+Usage:
+
+        perl -MZabbix::ServerScript -e create_config
 
 # LICENSE
 

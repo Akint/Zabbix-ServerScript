@@ -2,6 +2,12 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.06 2016-07-18T09:50:19Z
+    - Implemented 'create_config'
+    - Changed the way of testing if JSON is valid
+    - Corrected existing tests
+    - Got rid of TZ in log4perl.appender.Logfile declaration, since it is deprecated in Date::Manip
+
 0.05 2016-07-15T06:50:49Z
     - Fixed dependencies, changed 'config_dir' to /usr/local/etc in DefaultConfig.pm
       Added missed dependencies: DBI, DBD::ODBC, JSON, LWP::UserAgent
