@@ -23,15 +23,16 @@ my %args = (
 
     requires => {
         'YAML' => '0.70',
+        'Term::UI' => '0.20',
         'perl' => '5.008001',
         'LWP::UserAgent' => '6.15',
         'DBD::ODBC' => '1.50',
         'Log::Dispatch' => '2.26',
         'Proc::PID::File' => '1.27',
         'JSON' => '2.15',
-        'Log::Log4perl' => '1.30',
-        'Log::Dispatch::FileRotate' => '1.19',
         'DBI' => '1.609',
+        'Log::Dispatch::FileRotate' => '1.19',
+        'Log::Log4perl' => '1.30',
     },
 
     recommends => {
