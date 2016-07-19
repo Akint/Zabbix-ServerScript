@@ -393,7 +393,7 @@ Accepts hashref as an argument, which can have the following keys:
 		unique => 1, 				# only one instance for each $opt->{id} is allowed
 	}
 
-Initializes following global variables: 
+Initializes the following global variables: 
 
 =over 4
 
@@ -411,7 +411,7 @@ User can generate its own global config and store it into Zabbix/ServerScript/Co
 
 Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
-Script-specific config is searched within $Zabbix::ServerScript::Config->{config_dir} path.
+Script-specific config is searched within $Zabbix::ServerScript::Config->{config_dir} path. Only YAML is currently supported for script-specific configs.
 
 	$config = {
 		global => {
@@ -433,20 +433,20 @@ Zabbix::ServerScript::API object
 
 Prints $value to STDOUT and exits. Throws an exception if $value is not defined.
 
-=head2 store_cache($cache)
+=head2 store_cache($cache, $cache_filename)
 
-Stores cache to file using Storable module
+Stores cache to file using Storable module. $cache_filename is optional.
 
 =head2 retrieve_cache($cache_filename)
 
-Retrieves cache from file using Storable module.
+Retrieves cache from file using Storable module. $cache_filename is optional.
 
 =head2 connect_to_db($dsn, $user, $password)
 
 Connects to database via unixODBC. $dsn is mandatory.
 Returns database handle or throws an exception on failure.
 
-=head2 send($data_structure, $user, $password)
+=head2 send($data_structure)
 
 Send data to Zabbix trapper like zabbix_sender does. $data_structure is mandatory.
 Returns server response on success or throws an exception on failure.

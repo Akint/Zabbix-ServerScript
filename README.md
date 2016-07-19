@@ -51,7 +51,7 @@ Accepts hashref as an argument, which can have the following keys:
                 unique => 1,                            # only one instance for each $opt->{id} is allowed
         }
 
-Initializes following global variables: 
+Initializes the following global variables: 
 
 - $logger
 
@@ -67,7 +67,7 @@ Initializes following global variables:
 
     Global config data can be accessed through $Zabbix::ServerScript::Config and $config->{global} variables.
 
-    Script-specific config is searched within $Zabbix::ServerScript::Config->{config\_dir} path.
+    Script-specific config is searched within $Zabbix::ServerScript::Config->{config\_dir} path. Only YAML is currently supported for script-specific configs.
 
             $config = {
                     global => {
@@ -87,20 +87,20 @@ Initializes following global variables:
 
 Prints $value to STDOUT and exits. Throws an exception if $value is not defined.
 
-## store\_cache($cache)
+## store\_cache($cache, $cache\_filename)
 
-Stores cache to file using Storable module
+Stores cache to file using Storable module. $cache\_filename is optional.
 
 ## retrieve\_cache($cache\_filename)
 
-Retrieves cache from file using Storable module.
+Retrieves cache from file using Storable module. $cache\_filename is optional.
 
 ## connect\_to\_db($dsn, $user, $password)
 
 Connects to database via unixODBC. $dsn is mandatory.
 Returns database handle or throws an exception on failure.
 
-## send($data\_structure, $user, $password)
+## send($data\_structure)
 
 Send data to Zabbix trapper like zabbix\_sender does. $data\_structure is mandatory.
 Returns server response on success or throws an exception on failure.
