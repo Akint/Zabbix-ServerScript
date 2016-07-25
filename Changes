@@ -2,6 +2,10 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.07 2016-07-25T06:16:19Z
+    - Fixed documentation
+    - Added Term::UI to dependencies
+
 0.06 2016-07-18T09:50:19Z
     - Implemented 'create_config'
     - Changed the way of testing if JSON is valid
