@@ -17,6 +17,7 @@ subtest q(Check return value) => sub {
 	like(exception { Zabbix::ServerScript::return_value() }, qr(Return value is not defined), q(Throw exception if return value is not defined));
 	my $stdout = capture {
 		fork or Zabbix::ServerScript::return_value(q(test));
+		while (wait() != -1) {}
 	};
 	is($stdout, qq(test\n), q(Write to stdout exactly what is requested));
 };
