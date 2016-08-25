@@ -1,7 +1,5 @@
 requires 'perl', '5.008001';
 requires 'Log::Log4perl', '>= 1.30';
-requires 'Log::Dispatch', '>= 2.26';
-requires 'Log::Dispatch::FileRotate', '>= 1.19';
 requires 'Proc::PID::File', '>= 1.27';
 requires 'YAML', '>= 0.70';
 requires 'JSON', '>= 2.15';

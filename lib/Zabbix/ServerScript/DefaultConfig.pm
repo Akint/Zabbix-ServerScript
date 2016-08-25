@@ -47,14 +47,12 @@ $Zabbix::ServerScript::Config = {
 		# Appenders
 
 		# Logfile
-		log4perl.appender.Logfile = Log::Dispatch::FileRotate
+		log4perl.appender.Logfile = Log::Log4perl::Appender::File
 		log4perl.appender.Logfile.filename = sub { $ENV{LOG_FILENAME}; }
 		log4perl.appender.Logfile.mode = append
 		log4perl.appender.Logfile.syswrite = 1
 		log4perl.appender.Logfile.layout = Log::Log4perl::Layout::PatternLayout::Multiline
 		log4perl.appender.Logfile.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %P %p> %m%n
-		log4perl.appender.Logfile.DatePattern = yyyy-MM-dd
-		log4perl.appender.Logfile.max = 7
 
 		# STDERR
 		log4perl.appender.STDERR = Log::Log4perl::Appender::Screen
