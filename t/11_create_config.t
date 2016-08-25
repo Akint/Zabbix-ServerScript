@@ -26,13 +26,17 @@ subtest q(Test config creation) => sub {
 		},
 	);
 
+	my $opt = {
+		console => 0,
+	};
+
 	$module_dir = File::Temp::tempdir(q(/tmp/test_module_dir.XXXXXX), CLEANUP => 1);
 	rmdir($module_dir);
-	like(exception { Zabbix::ServerScript::create_config() }, qr(Wrong directory), q(Throws an exception if provided directory is wrong));
+	like(exception { Zabbix::ServerScript::create_config($opt) }, qr(Wrong directory), q(Throws an exception if provided directory is wrong));
 
 	$module_dir = File::Temp::tempdir(q(/tmp/test_module_dir.XXXXXX), CLEANUP => 1);
 	my $module_filename = qq($module_dir/Config.pm);
-	like(exception { Zabbix::ServerScript::create_config() }, qr(Exit called), q(Successfully finishes its job when valid dirs are provided));
+	like(exception { Zabbix::ServerScript::create_config($opt) }, qr(Exit called), q(Successfully finishes its job when valid dirs are provided));
 	ok(-f $module_filename, q(Config.pm exists in provided dir));
 	require_ok($module_filename);
 
@@ -43,13 +47,13 @@ subtest q(Test config creation) => sub {
 			return $yn;
 		}
 	);
-	like(exception { Zabbix::ServerScript::create_config() }, qr(Exit called), q(Successfully exits if overwrite is not requested));
+	like(exception { Zabbix::ServerScript::create_config($opt) }, qr(Exit called), q(Successfully exits if overwrite is not requested));
 	my $mtime_new = (stat($module_filename))[9];
 	is($mtime_old, $mtime_new, q(File modification time stays the same if overwrite is not requested));
 
 	sleep 1;
 	$yn = 1;
-	like(exception { Zabbix::ServerScript::create_config() }, qr(Exit called), q(Successfully exits if overwrite is requested));
+	like(exception { Zabbix::ServerScript::create_config($opt) }, qr(Exit called), q(Successfully exits if overwrite is requested));
 	$mtime_new = (stat($module_filename))[9];
 	isnt($mtime_old, $mtime_new, q(File modification time changes if overwrite is requested));
 };

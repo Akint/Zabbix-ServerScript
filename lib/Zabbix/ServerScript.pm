@@ -294,10 +294,14 @@ sub send {
 sub create_config {
 	require Zabbix::ServerScript::DefaultConfig;
 
-	init({
+	my ($opt) = @_;
+	$opt = {
 		console => 1,
 		verbose => 1,
-	});
+		(defined $opt ? %$opt : ()),
+	};
+	print Dumper($opt);
+	init($opt);
 
 	my $term = Term::ReadLine->new('Zabbix::ServerScript');
 	(my $module_dir = dirname($INC{q(Zabbix/ServerScript/DefaultConfig.pm)})) =~ s|//|/|g;
