@@ -29,7 +29,7 @@ BEGIN {
 
 our @ISA = q(Exporter);
 our @EXPORT = qw($config $logger $zx_api create_config);
-our $VERSION = q(0.08);
+our $VERSION = q(0.09);
 
 our $config = {};
 our $logger;

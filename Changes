@@ -2,6 +2,12 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.09 2016-08-25T03:44:26Z
+    - Fixed race condition in t/04_pid.t.
+    - Accepting options to create_config.
+    - Changed default file logger to Log::Log4perl::Appender::File to minimize dependencies.
+    - Got rid of setting UTF-8 binmode directly and via Log4perl config. Resolves #5.
+
 0.08 2016-08-24T05:45:02Z
     - Fixed race condition in t/07_return_value.t. Resolves #4
 
