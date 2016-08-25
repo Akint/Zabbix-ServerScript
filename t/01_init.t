@@ -1,19 +1,13 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 2;
 use Test::Fatal;
 use Test::Output;
 use File::Temp;
 use Data::Dumper;
 
 use Zabbix::ServerScript;
-
-subtest q(check _set_binmode) => sub {
-	Zabbix::ServerScript::_set_binmode();
-	like(PerlIO::get_layers(STDOUT), qr(utf8), q(STDOUT is in "utf8" binmode));
-	like(PerlIO::get_layers(STDERR), qr(utf8), q(STDERR is in "utf8" binmode));
-};
 
 subtest q(check _set_basename) => sub {
 	Zabbix::ServerScript::_set_basename(q(),q(test.pl));

@@ -51,7 +51,6 @@ $Zabbix::ServerScript::Config = {
 		log4perl.appender.Logfile.filename = sub { $ENV{LOG_FILENAME}; }
 		log4perl.appender.Logfile.mode = append
 		log4perl.appender.Logfile.syswrite = 1
-		log4perl.appender.Logfile.binmode = utf8
 		log4perl.appender.Logfile.layout = Log::Log4perl::Layout::PatternLayout::Multiline
 		log4perl.appender.Logfile.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %P %p> %m%n
 		log4perl.appender.Logfile.DatePattern = yyyy-MM-dd
@@ -60,7 +59,6 @@ $Zabbix::ServerScript::Config = {
 		# STDERR
 		log4perl.appender.STDERR = Log::Log4perl::Appender::Screen
 		log4perl.appender.STDERR.stderr = 1
-		log4perl.appender.STDERR.utf8 = 1
 		log4perl.appender.STDERR.layout = Log::Log4perl::Layout::PatternLayout::Multiline
 		log4perl.appender.STDERR.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %P %p> %m%n
 	),

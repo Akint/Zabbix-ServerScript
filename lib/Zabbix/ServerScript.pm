@@ -207,7 +207,6 @@ sub store_cache {
 sub init {
 	my ($opt) = @_;
 
-	_set_binmode();
 	_set_basename(caller);
 	_set_id($opt->{id});
 	_set_logger($opt);

@@ -15,7 +15,6 @@ subtest q(throws exception if environment variables are not set) => sub {
 	ok exception { Zabbix::ServerScript::_set_config() };
 };
 
-Zabbix::ServerScript::_set_binmode();
 $ENV{BASENAME} = q(zabbix_server_script_test);
 $ENV{ID} = q(zabbix_server_script_test);
 Zabbix::ServerScript::_set_logger({
