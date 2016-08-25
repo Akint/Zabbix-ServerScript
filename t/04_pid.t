@@ -10,7 +10,6 @@ use Storable;
 
 use Zabbix::ServerScript;
 
-Zabbix::ServerScript::_set_binmode();
 $ENV{BASENAME} = q(zabbix_server_script_test);
 $ENV{ID} = q(zabbix_server_script_test);
 Zabbix::ServerScript::_set_logger({ log_filename => q(/tmp/zabbix_server_script_test.log) });
@@ -56,8 +55,8 @@ subtest q(Ensure process uniqueness) => sub {
 	my $child1_pid = fork and $i++;
 	my $child2_pid = fork if $child1_pid;
 	if (not ($child1_pid and $child2_pid)){
+		sleep 1 if defined $child1_pid;
 		Zabbix::ServerScript::_set_unique(1);
-		sleep 1;
 		$logger->fatal(qq(Result message: $i));
 		exit;
 	}
