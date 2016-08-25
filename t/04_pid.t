@@ -55,9 +55,12 @@ subtest q(Ensure process uniqueness) => sub {
 	my $child1_pid = fork and $i++;
 	my $child2_pid = fork if $child1_pid;
 	if (not ($child1_pid and $child2_pid)){
+		# ensure there will be delay between child1 and child2's _set_unique
 		sleep 1 if defined $child1_pid;
 		Zabbix::ServerScript::_set_unique(1);
 		$logger->fatal(qq(Result message: $i));
+		# ensure that child2 will run for enough time
+		sleep 2 unless defined $child2_pid;
 		exit;
 	}
 	while (wait() != -1) {}
