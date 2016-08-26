@@ -50,7 +50,7 @@ sub _get_options {
 	};
 	$opt = {
 		%$default_opt,
-		(defined %$opt ? %$opt : ()),
+		(defined $opt ? %$opt : ()),
 	};
 	my @default_opt_specs = qw(
 		verbose|v+
