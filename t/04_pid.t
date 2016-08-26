@@ -55,19 +55,16 @@ subtest q(Ensure process uniqueness) => sub {
 	my $child1_pid = fork and $i++;
 	my $child2_pid = fork if $child1_pid;
 	if (not ($child1_pid and $child2_pid)){
-		# ensure there will be delay between child1 and child2's _set_unique
-		sleep 1 if defined $child1_pid;
 		Zabbix::ServerScript::_set_unique(1);
 		$logger->fatal(qq(Result message: $i));
-		# ensure that child2 will run for enough time
-		sleep 2 unless defined $child2_pid;
+		sleep 5;
 		exit;
 	}
 	while (wait() != -1) {}
 	my $content = read_file_contents($log_fh);
-	like($content, qr(already running), q(Second fork found out that the first one was running));
-	unlike($content, qr(Result message: 1), q(Second fork exited));
-	like($content, qr(Result message: 0), q(First fork finished its job));
+	like($content, qr(already (?:running|locked)), q(Second fork found out that the first one was running));
+	my @matches = $content =~ m/Result message: [01]/g;
+	is(scalar @matches, 1, qq(Only one fork has done it's job));
 };
 
 unlink(q(/tmp/zabbix_server_script_test.log));
