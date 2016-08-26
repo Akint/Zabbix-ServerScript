@@ -6,7 +6,6 @@ use Exporter;
 use Data::Dumper;
 use YAML;
 use JSON;
-use Text::ParseWords;
 use Log::Log4perl;
 use Log::Log4perl::Level;
 use Proc::PID::File;
