@@ -2,6 +2,13 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.10 2016-08-26T05:44:16Z
+    - Removed unnecessary 'use Text::ParseWords'
+    - Fixed 'defined %$opt -> defined $opt'
+    - Added List::MoreUtils to dependencies.
+    - Change way of testing _set_unique: one of forks must find out that the other is running.
+    - Implemented --daemon option and _get_options(). Resolves #3.
+
 0.09 2016-08-25T03:44:26Z
     - Fixed race condition in t/04_pid.t.
     - Accepting options to create_config.

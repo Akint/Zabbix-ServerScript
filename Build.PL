@@ -22,6 +22,7 @@ my %args = (
     },
 
     requires => {
+        'Getopt::Long' => '2.38',
         'YAML' => '0.70',
         'Term::UI' => '0.20',
         'perl' => '5.008001',
@@ -29,8 +30,10 @@ my %args = (
         'DBD::ODBC' => '1.50',
         'Proc::PID::File' => '1.27',
         'JSON' => '2.15',
-        'Log::Log4perl' => '1.30',
+        'Proc::Daemon' => '0.19',
+        'List::MoreUtils' => '0.22',
         'DBI' => '1.609',
+        'Log::Log4perl' => '1.30',
     },
 
     recommends => {

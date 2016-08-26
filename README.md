@@ -9,22 +9,18 @@ Zabbix::ServerScript - Simplify your Zabbix server scripts' environment.
     use strict;
     use warnings;
     use utf8;
-    use Getopt::Long qw(:config bundling);
     use Zabbix::ServerScript;
     
     my $opt = {
-        unique => 1,
+        id => 1,
     };
     
     my @opt_specs = qw(
-        verbose|v+
-        debug
-        console
+        id=i
     );
     
     sub main {
-        GetOptions($opt, @opt_specs);
-        Zabbix::ServerScript::init($opt);
+        Zabbix::ServerScript::init($opt, @opt_specs);
         Zabbix::ServerScript::return_value(1);
     }
 
@@ -36,9 +32,11 @@ Zabbix::ServerScript is a module to simplify writing new scripts for Zabbix serv
 
 # SUBROUTINES
 
-## init($opt)
+## init($opt, @opt\_specs)
 
-Accepts hashref as an argument, which can have the following keys:
+Initializes variables, sets logger, API, etc.
+
+If specified, the first argument must be hashref, which can have the following keys:
 
         $opt = {
                 config => q(path/to/local/config.yaml),
@@ -48,8 +46,18 @@ Accepts hashref as an argument, which can have the following keys:
                 logger => q(Zabbix.ServerScript),       # Log4perl logger name
                 api => q(),                             # name of Zabbix API instance in global config
                 id => q(),                              # unique identifier of what is being done, e.g.: database being checked
-                unique => 1,                            # only one instance for each $opt->{id} is allowed
+                unique => 0,                            # only one instance for each $opt->{id} is allowed
+                daemon => 0,                            # daemonize during initialization. See Proc::Damon for details
         }
+
+If specified, the 2nd argument must be array of options descriptions, as for Getopt::Long::GetOptions.
+
+The following options descrtiptions are included by default (see their meanings above):
+
+        verbose|v+ # --verbose (supports bundling, e.g. -vvv)
+        debug
+        daemon
+        console
 
 Initializes the following global variables: 
 

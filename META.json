@@ -44,9 +44,12 @@
          "requires" : {
             "DBD::ODBC" : "1.50",
             "DBI" : "1.609",
+            "Getopt::Long" : "2.38",
             "JSON" : "2.15",
             "LWP::UserAgent" : "6.15",
+            "List::MoreUtils" : "0.22",
             "Log::Log4perl" : "1.30",
+            "Proc::Daemon" : "0.19",
             "Proc::PID::File" : "1.27",
             "Term::UI" : "0.20",
             "YAML" : "0.70",
@@ -76,5 +79,5 @@
          "web" : "https://github.com/Akint/Zabbix-ServerScript"
       }
    },
-   "version" : "0.09"
+   "version" : "0.10"
 }
