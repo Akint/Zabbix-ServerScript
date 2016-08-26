@@ -1,13 +1,75 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::Fatal;
 use Test::Output;
 use File::Temp;
 use Data::Dumper;
+use Capture::Tiny ':all';
 
 use Zabbix::ServerScript;
+
+subtest q(check _get_options) => sub {
+	my $opt = Zabbix::ServerScript::_get_options();
+	my $default_opt = {
+		daemon => 0,
+		verbose => 0,
+		debug => 0,
+		unique => 0,
+		console => 0,
+	};
+	is_deeply($opt, $default_opt, q(_get_options sets default options when no arguments are given));
+	
+	my $etalon_opt = { %$default_opt };
+	$etalon_opt->{daemon} = 1;
+	push @ARGV, q(--daemon);
+	$opt = Zabbix::ServerScript::_get_options();
+	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{daemon} when --daemon option is passed));
+
+	$etalon_opt = { %$default_opt };
+	$etalon_opt->{debug} = 1;
+	push @ARGV, q(--debug);
+	$opt = Zabbix::ServerScript::_get_options();
+	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{debug} when --debug option is passed));
+
+	$etalon_opt = { %$default_opt };
+	$etalon_opt->{console} = 1;
+	push @ARGV, q(--console);
+	$opt = Zabbix::ServerScript::_get_options();
+	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{console} when --console option is passed));
+
+	$etalon_opt = { %$default_opt };
+	$etalon_opt->{verbose} = 1;
+	push @ARGV, q(--verbose);
+	$opt = Zabbix::ServerScript::_get_options();
+	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{verbose} when --verbose option is passed));
+
+	$etalon_opt->{verbose} = 3;
+	push @ARGV, q(-vvv);
+	$opt = Zabbix::ServerScript::_get_options();
+	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{verbose} according to count of bundled -v given));
+
+	push @ARGV, q(--non-valid-option);
+	ok( exception { capture_stderr { $opt = Zabbix::ServerScript::_get_options() } }, q(_get_options throws an exception if non-valid option is given));
+
+	$opt = {};
+	$etalon_opt = { %$default_opt };
+	my @opt_specs = qw(
+		daemon
+		console
+	);
+	$opt = Zabbix::ServerScript::_get_options($opt, @opt_specs);
+	is_deeply($opt, $etalon_opt, q(_get_options doesn't fail if duplicate opt_specs are given));
+
+	$opt = {
+		id => q(test),
+	};
+	$etalon_opt = { %$default_opt };
+	$etalon_opt->{id} = q(test);
+	$opt = Zabbix::ServerScript::_get_options($opt);
+	is_deeply($opt, $etalon_opt, q(_get_options preserves options provided as its arguments));
+};
 
 subtest q(check _set_basename) => sub {
 	Zabbix::ServerScript::_set_basename(q(),q(test.pl));

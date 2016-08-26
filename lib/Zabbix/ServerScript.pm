@@ -10,12 +10,15 @@ use Text::ParseWords;
 use Log::Log4perl;
 use Log::Log4perl::Level;
 use Proc::PID::File;
+use Proc::Daemon;
 use File::Basename;
 use Exporter;
 use Carp;
 use Storable;
 use Term::ReadLine;
 use Term::UI;
+use Getopt::Long qw(:config bundling);
+use List::MoreUtils qw(uniq);
 
 BEGIN {
 	eval {
@@ -34,6 +37,31 @@ our $VERSION = q(0.09);
 our $config = {};
 our $logger;
 our $zx_api;
+
+sub _get_options {
+	my ($opt, @opt_specs) = @_;
+	my $default_opt = {
+		daemon => 0,
+		verbose => 0,
+		debug => 0,
+		unique => 0,
+		debug => 0,
+		console => 0,
+	};
+	$opt = {
+		%$default_opt,
+		(defined %$opt ? %$opt : ()),
+	};
+	my @default_opt_specs = qw(
+		verbose|v+
+		debug
+		daemon
+		console
+	);
+	@opt_specs = uniq (@opt_specs, @default_opt_specs);
+	GetOptions($opt, @opt_specs) or croak qq(Cannot get options);
+	return $opt;
+}
 
 sub _set_basename {
 	my @caller = @_;
@@ -174,6 +202,12 @@ sub _set_unique {
 	}
 }
 
+sub _set_daemon {
+	my ($daemon) = @_;
+	return Proc::Daemon::Init() if $daemon;
+	return;
+}
+
 sub retrieve_cache {
 	my ($cache_filename) = @_;
 	$cache_filename = qq($Zabbix::ServerScript::Config->{cache_dir}/$ENV{BASENAME}.cache) unless defined $cache_filename;
@@ -205,10 +239,12 @@ sub store_cache {
 }
 
 sub init {
-	my ($opt) = @_;
+	my ($opt, @opt_specs) = @_;
 
+	$opt = _get_options($opt, @opt_specs);
 	_set_basename(caller);
 	_set_id($opt->{id});
+	_set_daemon($opt->{daemon});
 	_set_logger($opt);
 	_set_unique($opt->{unique}, $opt->{id});
 	_set_config($opt->{config});
@@ -354,22 +390,18 @@ Zabbix::ServerScript - Simplify your Zabbix server scripts' environment.
     use strict;
     use warnings;
     use utf8;
-    use Getopt::Long qw(:config bundling);
     use Zabbix::ServerScript;
     
     my $opt = {
-    	unique => 1,
+    	id => 1,
     };
     
     my @opt_specs = qw(
-    	verbose|v+
-    	debug
-    	console
+    	id=i
     );
     
     sub main {
-    	GetOptions($opt, @opt_specs);
-    	Zabbix::ServerScript::init($opt);
+    	Zabbix::ServerScript::init($opt, @opt_specs);
 	Zabbix::ServerScript::return_value(1);
     }
 
@@ -381,9 +413,11 @@ Zabbix::ServerScript is a module to simplify writing new scripts for Zabbix serv
 
 =head1 SUBROUTINES
 
-=head2 init($opt)
+=head2 init($opt, @opt_specs)
 
-Accepts hashref as an argument, which can have the following keys:
+Initializes variables, sets logger, API, etc.
+
+If specified, the first argument must be hashref, which can have the following keys:
 	
 	$opt = {
 		config => q(path/to/local/config.yaml),
@@ -393,8 +427,19 @@ Accepts hashref as an argument, which can have the following keys:
 		logger => q(Zabbix.ServerScript), 	# Log4perl logger name
 		api => q(),				# name of Zabbix API instance in global config
 		id => q(),	 			# unique identifier of what is being done, e.g.: database being checked
-		unique => 1, 				# only one instance for each $opt->{id} is allowed
+		unique => 0, 				# only one instance for each $opt->{id} is allowed
+		daemon => 0, 				# daemonize during initialization. See Proc::Damon for details
 	}
+
+If specified, the 2nd argument must be array of options descriptions, as for Getopt::Long::GetOptions.
+
+The following options descrtiptions are included by default (see their meanings above):
+
+	verbose|v+ # --verbose (supports bundling, e.g. -vvv)
+	debug
+	daemon
+	console
+
 
 Initializes the following global variables: 
 

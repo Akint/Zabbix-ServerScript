@@ -1,6 +1,8 @@
 requires 'perl', '5.008001';
 requires 'Log::Log4perl', '>= 1.30';
 requires 'Proc::PID::File', '>= 1.27';
+requires 'Proc::Daemon', '>= 0.19';
+requires 'Getopt::Long', '>= 2.38';
 requires 'YAML', '>= 0.70';
 requires 'JSON', '>= 2.15';
 requires 'DBI', '>= 1.609';
