@@ -9,6 +9,7 @@ requires 'DBI', '>= 1.609';
 requires 'DBD::ODBC', '>= 1.50';
 requires 'LWP::UserAgent', '>= 6.15';
 requires 'Term::UI', '>= 0.20';
+requires 'List::MoreUtils', '>= 0.22';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';
