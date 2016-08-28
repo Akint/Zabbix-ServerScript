@@ -7,6 +7,7 @@ use File::Temp;
 use Data::Dumper;
 use Storable;
 use Log::Log4perl;
+use English;
 
 use_ok(q(Zabbix::ServerScript::DefaultConfig));
 
@@ -45,9 +46,12 @@ subtest q(Check cache-related parameters) => sub {
 };
 
 subtest q(Check config-related parameters) => sub {
-	ok(-d $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' exists));
-	ok(-r $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' is readable));
-	ok(-x $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' is executable));
+	SKIP: {
+		skip q(/usr/local/etc/ does not exist on Mac OS X by default), 3 if $OSNAME eq q(darwin);
+		ok(-d $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' exists));
+		ok(-r $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' is readable));
+		ok(-x $Zabbix::ServerScript::Config->{config_dir}, q('config_dir' is executable));
+	}
 };
 
 unlink(q(/tmp/zabbix_server_script_test.log));
