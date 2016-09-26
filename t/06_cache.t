@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 use File::Temp;
+use File::Basename;
 use Data::Dumper;
 use Storable;
 
@@ -49,6 +50,14 @@ subtest q(store proper structure to cache) => sub {
 	my $hash = retrieve $filename;
 	is_deeply($cache, $hash, q(Retrieve proper structure to cache));
 	unlink($filename);
+};
+
+subtest q(store/retrieve to default filename) => sub {
+	$ENV{BASENAME} = basename(mktemp(qq($config->{global}->{cache_dir}/test_cache.XXXXXX)));
+	my $hash = { test => 2 };
+	ok(Zabbix::ServerScript::store_cache($hash), q(Store cache to default filename));
+	my $cache = Zabbix::ServerScript::retrieve_cache();
+	is_deeply($cache, $hash, q(Retrieve proper structure from default filename));
 };
 
 unlink(q(/tmp/zabbix_server_script_test.log));

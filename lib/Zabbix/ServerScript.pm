@@ -209,7 +209,10 @@ sub _set_daemon {
 
 sub retrieve_cache {
 	my ($cache_filename) = @_;
-	$cache_filename = qq($Zabbix::ServerScript::Config->{cache_dir}/$ENV{BASENAME}.cache) unless defined $cache_filename;
+	if (not defined $cache_filename){
+		$logger->debug(q(Cache filename is not specified, using default filename));
+		$cache_filename = qq($Zabbix::ServerScript::Config->{cache_dir}/$ENV{BASENAME}.cache) 
+	}
 	my $cache;
 	if (-f $cache_filename){
 		$logger->debug(qq(Loading cache from "$cache_filename"));
@@ -227,6 +230,11 @@ sub retrieve_cache {
 
 sub store_cache {
 	my ($cache, $cache_filename) = @_;
+	if (not defined $cache_filename){
+		$logger->debug(q(Cache filename is not specified, using default filename));
+		$cache_filename = qq($Zabbix::ServerScript::Config->{cache_dir}/$ENV{BASENAME}.cache) 
+	}
+	$logger->debug(qq(Storing cache to $cache_filename));
 	eval {
 		store $cache, $cache_filename;
 		1;
