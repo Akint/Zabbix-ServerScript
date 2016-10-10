@@ -11,7 +11,12 @@ use Capture::Tiny ':all';
 use Zabbix::ServerScript;
 
 subtest q(check _get_options) => sub {
-	my $opt = Zabbix::ServerScript::_get_options();
+	my $opt = 1;
+
+	ok( exception { Zabbix::ServerScript::_get_options($opt) }, q(_get_options throws an exception if $opt is defined and not a hash reference));
+
+	undef $opt;
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	my $default_opt = {
 		daemon => 0,
 		verbose => 0,
@@ -21,39 +26,44 @@ subtest q(check _get_options) => sub {
 	};
 	is_deeply($opt, $default_opt, q(_get_options sets default options when no arguments are given));
 	
+	undef $opt;
 	my $etalon_opt = { %$default_opt };
 	$etalon_opt->{daemon} = 1;
 	push @ARGV, q(--daemon);
-	$opt = Zabbix::ServerScript::_get_options();
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{daemon} when --daemon option is passed));
 
+	undef $opt;
 	$etalon_opt = { %$default_opt };
 	$etalon_opt->{debug} = 1;
 	push @ARGV, q(--debug);
-	$opt = Zabbix::ServerScript::_get_options();
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{debug} when --debug option is passed));
 
+	undef $opt;
 	$etalon_opt = { %$default_opt };
 	$etalon_opt->{console} = 1;
 	push @ARGV, q(--console);
-	$opt = Zabbix::ServerScript::_get_options();
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{console} when --console option is passed));
 
+	undef $opt;
 	$etalon_opt = { %$default_opt };
 	$etalon_opt->{verbose} = 1;
 	push @ARGV, q(--verbose);
-	$opt = Zabbix::ServerScript::_get_options();
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{verbose} when --verbose option is passed));
 
+	undef $opt;
 	$etalon_opt->{verbose} = 3;
 	push @ARGV, q(-vvv);
-	$opt = Zabbix::ServerScript::_get_options();
+	$opt = Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options sets $opt->{verbose} according to count of bundled -v given));
 
 	push @ARGV, q(--non-valid-option);
-	ok( exception { capture_stderr { $opt = Zabbix::ServerScript::_get_options() } }, q(_get_options throws an exception if non-valid option is given));
+	ok( exception { capture_stderr { $opt = Zabbix::ServerScript::_get_options($opt) } }, q(_get_options throws an exception if non-valid option is given));
 
-	$opt = {};
+	undef $opt;
 	$etalon_opt = { %$default_opt };
 	my @opt_specs = qw(
 		daemon
@@ -67,8 +77,17 @@ subtest q(check _get_options) => sub {
 	};
 	$etalon_opt = { %$default_opt };
 	$etalon_opt->{id} = q(test);
-	$opt = Zabbix::ServerScript::_get_options($opt);
+	Zabbix::ServerScript::_get_options($opt);
 	is_deeply($opt, $etalon_opt, q(_get_options preserves options provided as its arguments));
+
+	push @ARGV, q(--test-option=test);
+	$opt = {};
+	$etalon_opt = { q(test-option) => q(test), %$default_opt };
+	@opt_specs = qw(
+		test-option=s
+	);
+	Zabbix::ServerScript::_get_options($opt, @opt_specs);
+	is_deeply($opt, $etalon_opt, q(_get_options puts specified options to $opt));
 };
 
 subtest q(check _set_basename) => sub {

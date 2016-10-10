@@ -47,10 +47,15 @@ sub _get_options {
 		debug => 0,
 		console => 0,
 	};
-	$opt = {
-		%$default_opt,
-		(defined $opt ? %$opt : ()),
-	};
+	
+	if (defined $opt){
+		croak q($opt must be hashref) unless ref $opt eq q(HASH);
+	} else {
+		$opt = {};
+	}
+
+	map { $opt->{$_} = $default_opt->{$_} unless defined $opt->{$_} } keys %$default_opt;
+
 	my @default_opt_specs = qw(
 		verbose|v+
 		debug
@@ -248,7 +253,7 @@ sub store_cache {
 sub init {
 	my ($opt, @opt_specs) = @_;
 
-	$opt = _get_options($opt, @opt_specs);
+	_get_options($opt, @opt_specs);
 	_set_basename(caller);
 	_set_id($opt->{id});
 	_set_daemon($opt->{daemon});
