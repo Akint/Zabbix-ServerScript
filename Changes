@@ -2,7 +2,7 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
-0.13 2016-10-10T09:26:35Z
+0.13 2016-10-10T09:34:49Z
     - Refactored _get_option, fixed hash dereference
 
 0.12 2016-09-26T09:26:21Z
