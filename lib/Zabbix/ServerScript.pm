@@ -253,7 +253,7 @@ sub store_cache {
 sub init {
 	my ($opt, @opt_specs) = @_;
 
-	_get_options($opt, @opt_specs);
+	$opt = _get_options($opt, @opt_specs);
 	_set_basename(caller);
 	_set_id($opt->{id});
 	_set_daemon($opt->{daemon});
