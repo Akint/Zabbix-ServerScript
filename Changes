@@ -2,6 +2,10 @@ Revision history for Perl extension Zabbix-ServerScript
 
 {{$NEXT}}
 
+0.14 2017-10-18T07:22:14Z
+    - Moved default trapper configuration to global config
+    - Fixed init() without args
+
 0.13 2016-10-10T09:35:46Z
     - Refactored _get_option, fixed hash dereference
 

@@ -4,7 +4,7 @@
       "Anton Alekseyev <akint.wr+github@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.0.2, CPAN::Meta::Converter version 2.143240",
+   "generated_by" : "Minilla/v3.0.13, CPAN::Meta::Converter version 2.150001",
    "license" : [
       "perl_5"
    ],
@@ -79,5 +79,5 @@
          "web" : "https://github.com/Akint/Zabbix-ServerScript"
       }
    },
-   "version" : "0.13"
+   "version" : "0.14"
 }
